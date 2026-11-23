@@ -9,7 +9,7 @@ const Preloader = () => {
     const fetchInfo = async () => {
       const { data, error } = await supabase
         .from('profile')
-        .select('first_Name, last_Name')
+        .select('*')
         .limit(1)
         .maybeSingle();
 
@@ -29,7 +29,7 @@ const Preloader = () => {
       <div className="PreloadText">
         <p className="PreloadTitle">Portfolio - system check</p>
         <h3 className="MyName">
-          {info ? `${info.first_Name} ${info.last_Name}` : 'Loading'}
+          {info ? `${info.first_Name} ${info.last_Name}` : ''}
         </h3>
       </div>
     </div>

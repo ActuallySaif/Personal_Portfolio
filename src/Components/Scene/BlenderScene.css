@@ -1,0 +1,35 @@
+/* Full-screen 3D layer that sits behind the scrolling page content. */
+.scene-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: #212121;
+}
+
+.scene-label,
+.scene-error {
+  font-family: 'Secondary', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ABC9AF;
+  white-space: nowrap;
+}
+
+.scene-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.scene-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  white-space: normal;
+  text-align: center;
+}

@@ -1,10 +1,12 @@
 .home-layout {
   min-height: 100vh;
-  background-color: #121212;
+  background-color: transparent; /* lets the fixed 3D canvas show through */
   color: #f5f5f5;
 }
 
 .facility-content {
+  position: relative;
+  z-index: 1; /* above the 3D canvas */
   max-width: 1440px;
   margin: 0 auto;
   padding: 0 1.5rem;
@@ -67,4 +69,4 @@
 
 .section-body {
   padding-top: 2rem;
-}
+}

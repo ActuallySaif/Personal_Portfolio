@@ -1,10 +1,14 @@
 import React from 'react';
 import './home.css';
 import PageNav from '../Components/Layout/PageNav';
+import BlenderScene from '../Components/Scene/BlenderScene';
 
 const Home = () => {
   return (
     <div className="home-layout">
+      {/* Blender scene: fixed behind the page, camera driven by scroll */}
+      <BlenderScene />
+
       {/* Right-rail docking navigation */}
       <PageNav />
 
@@ -69,4 +73,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Home;
