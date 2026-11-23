@@ -1,0 +1,190 @@
+/* Desktop Right-Rail Depth Meter & Docking Navigation */
+.page-nav-desktop {
+  display: none;
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: 13rem;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.page-nav-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Vertical Ruler Scale with Major (30px) & Minor (6px) Increment Markings */
+.page-nav-ruler {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  z-index: 1;
+  border-right: 1px solid rgba(255, 255, 255, 0.22);
+  background-image:
+    /* Major increment tick every 30px (12px wide) */
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.5) 0px,
+      rgba(255, 255, 255, 0.5) 1px,
+      transparent 1px,
+      transparent 30px
+    ),
+    /* Minor increment tick every 6px (6px wide) */
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.22) 0px,
+      rgba(255, 255, 255, 0.22) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+  background-size:
+    12px 100%,
+    6px 100%;
+  background-position:
+    right top,
+    right top;
+  background-repeat: no-repeat;
+  will-change: background-position;
+  pointer-events: none;
+}
+
+.page-nav-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px; /* Must match ITEM_HEIGHT in PageNav.jsx */
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background-color: rgba(18, 18, 18, 0.94);
+  color: #a3a3a3;
+  text-decoration: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  pointer-events: auto;
+  will-change: transform;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.page-nav-item:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #f5f5f5;
+}
+
+.page-nav-item.is-active {
+  border-left: 2px solid #ff5500;
+  background-color: #1c1c1c;
+  color: #ffffff;
+}
+
+.page-nav-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+.page-nav-depth {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  color: #737373;
+  transition: color 0.2s ease;
+}
+
+.page-nav-item:hover .page-nav-depth {
+  color: #d4d4d4;
+}
+
+.page-nav-item.is-active .page-nav-depth {
+  color: #ff5500;
+}
+
+/* Mobile Compact Top Bar */
+.page-nav-mobile {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: rgba(18, 18, 18, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.page-nav-mobile-item {
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a3a3a3;
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.page-nav-mobile-item:hover {
+  color: #ffffff;
+}
+
+.page-nav-mobile-item.is-active {
+  border-color: #ff5500;
+  background-color: rgba(255, 85, 0, 0.1);
+  color: #ffffff;
+}
+
+.page-nav-mobile-depth {
+  margin-right: 0.375rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.625rem;
+  color: #ff5500;
+}
+
+/* Mini Ruler Ticks Between Mobile Labels */
+.page-nav-mobile-ticks {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.page-nav-mobile-ticks i {
+  display: block;
+  width: 1px;
+  height: 5px;
+  background-color: rgba(255, 255, 255, 0.28);
+}
+
+.page-nav-mobile-ticks i:nth-child(2) {
+  height: 9px;
+  background-color: rgba(255, 255, 255, 0.48);
+}
+
+/* Desktop Breakpoint (1024px+) */
+@media (min-width: 1024px) {
+  .page-nav-desktop {
+    display: block;
+  }
+
+  .page-nav-mobile {
+    display: none;
+  }
+}

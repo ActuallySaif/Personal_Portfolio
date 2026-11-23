@@ -1,0 +1,70 @@
+.home-layout {
+  min-height: 100vh;
+  background-color: #121212;
+  color: #f5f5f5;
+}
+
+.facility-content {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Reserve space for the fixed right-side PageNav on desktop */
+@media (min-width: 1024px) {
+  .facility-content {
+    padding-right: 16rem; /* 13rem nav width + 1.5rem right offset + 1.5rem gap */
+  }
+}
+
+.facility-section {
+  min-height: 100vh;
+  padding-bottom: 5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  /* Prevents the mobile top nav from covering the section title when clicked */
+  scroll-margin-top: 2.75rem;
+}
+
+@media (min-width: 1024px) {
+  .facility-section {
+    scroll-margin-top: 0;
+  }
+}
+
+/* Optional: Sticky header bar inside each section */
+.section-header {
+  position: sticky;
+  top: 2.65rem; /* Sits directly below .page-nav-mobile on small screens */
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(18, 18, 18, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@media (min-width: 1024px) {
+  .section-header {
+    top: 0; /* Locks to the very top edge on desktop */
+  }
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+
+.section-depth {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: #ff5500;
+}
+
+.section-body {
+  padding-top: 2rem;
+}
