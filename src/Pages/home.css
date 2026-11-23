@@ -22,7 +22,6 @@
 .facility-section {
   min-height: 100vh;
   padding-bottom: 5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   /* Prevents the mobile top nav from covering the section title when clicked */
   scroll-margin-top: 2.75rem;
 }

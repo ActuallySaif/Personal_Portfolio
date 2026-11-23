@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import './PageNav.css';
 
 const PageSections = [
-  { id: 'level-00', depth: '000M', label: 'Start', title: '00 // The Surface' },
-  { id: 'level-01', depth: '-050M', label: 'About', title: '01 // About me' },
-  { id: 'level-02', depth: '-120M', label: 'Categories', title: '02 // Main Cargo Bay' },
-  { id: 'level-03', depth: '-250M', label: 'Projects', title: '03 // The Assembly Lab' },
-  { id: 'level-05', depth: '-500M', label: 'End', title: '05 // Bottom' },
+  { id: 'level-00', label: 'Start', title: '00 // The Surface' },
+  { id: 'level-01', label: 'About', title: '01 // About me' },
+  { id: 'level-02', label: 'Categories', title: '02 // Main Cargo Bay' },
+  { id: 'level-03', label: 'Projects', title: '03 // The Assembly Lab' },
+  { id: 'level-05', label: 'End', title: '05 // Bottom' },
 ];
 
 // Layout metrics (aligned to 6px minor / 30px major ruler increments)
@@ -128,7 +128,6 @@ const PageNav = () => {
                 className={`page-nav-item ${isActive ? 'is-active' : ''}`}
               >
                 <span className="page-nav-label">{section.label}</span>
-                <span className="page-nav-depth">{section.depth}</span>
               </a>
             );
           })}
@@ -146,7 +145,6 @@ const PageNav = () => {
                 onClick={(e) => scrollToSection(e, section.id, index)}
                 className={`page-nav-mobile-item ${isActive ? 'is-active' : ''}`}
               >
-                <span className="page-nav-mobile-depth">{section.depth}</span>
                 {section.label}
               </a>
               {index < PageSections.length - 1 && (
@@ -164,4 +162,4 @@ const PageNav = () => {
   );
 };
 
-export default PageNav;
+export default PageNav;
