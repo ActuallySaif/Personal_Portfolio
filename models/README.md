@@ -1,7 +1,7 @@
 # 3D models
 
 `models/scene.glb` is the raw export from Blender. The site loads the compressed copy at
-`public/models/scene.glb`. After replacing the raw file, run:
+`public/models/scene/` (a .gltf with separate .bin and WebP texture files). After replacing the raw file, run:
 
 ```
 npm run optimize:model

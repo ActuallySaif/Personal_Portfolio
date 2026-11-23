@@ -5,12 +5,27 @@ import { AgXToneMapping, LoopOnce, MathUtils } from 'three'
 import './BlenderScene.css'
 
 // Exported from Blender (File > Export > glTF 2.0, .glb). See models/README.md.
-export const MODEL_URL = '/models/scene.glb'
+export const MODEL_URL = '/models/scene/scene.gltf'
 // Blender world HDRI (.hdr or .exr). Set to null to fall back to the built-in studio light.
 export const HDRI_URL = '/hdri/sky.exr'
 
-// Stand-in for Blender's Sky Texture sun. Tweak to match the sun elevation/rotation there.
-const SUN = { position: [30, 40, 25], intensity: 3, color: '#FFF1E0' }
+// Stand-in for Blender's Sky Texture sun (Nishita). Values copied from the Blender world settings.
+const SUN_ELEVATION = 49.7 // degrees
+const SUN_ROTATION = -106.3 // degrees
+const SUN = { position: sunPosition(SUN_ELEVATION, SUN_ROTATION, 60), intensity: 4.5, color: '#FFF4E5' }
+// How much the HDRI lights the scene. Lower = darker shadows (the sun does the rest).
+const HDRI_LIGHT = 0.35
+
+/** Blender sky sun angles -> three.js position (Blender Z-up becomes three.js Y-up). */
+function sunPosition(elevationDeg, rotationDeg, distance) {
+  const e = MathUtils.degToRad(elevationDeg)
+  const r = MathUtils.degToRad(rotationDeg)
+  // Blender: (cos e * sin r, cos e * cos r, sin e)  ->  three.js: (x, z, -y)
+  const bx = Math.cos(e) * Math.sin(r)
+  const by = Math.cos(e) * Math.cos(r)
+  const bz = Math.sin(e)
+  return [bx * distance, bz * distance, -by * distance]
+}
 
 /** 0 at the top of the page, 1 at the bottom. */
 function readScrollProgress() {
@@ -149,22 +164,20 @@ export default function BlenderScene() {
           shadows="percentage"
         >
           <color attach="background" args={['#212121']} />
-          {/* Soft fill in case the export has no lights. Exported Blender lights add on top. */}
-          <hemisphereLight args={['#C6C9C0', '#212121', 0.6]} />
           <directionalLight
             position={SUN.position}
             intensity={SUN.intensity}
             color={SUN.color}
             castShadow
-            shadow-mapSize={[2048, 2048]}
+            shadow-mapSize={[4096, 4096]}
             shadow-bias={-0.0005}
             shadow-normalBias={0.02}
           >
-            <orthographicCamera attach="shadow-camera" args={[-50, 50, 50, -50, 1, 150]} />
+            <orthographicCamera attach="shadow-camera" args={[-40, 40, 40, -40, 1, 150]} />
           </directionalLight>
           {HDRI_URL ? (
             // Blender world HDRI: lights the scene and shows as the sky.
-            <Environment files={HDRI_URL} background />
+            <Environment files={HDRI_URL} background backgroundIntensity={1.5} environmentIntensity={HDRI_LIGHT} />
           ) : (
             // Built-in reflections so metal (steel, doors) isn't pitch black. No network fetch.
             <Environment resolution={256} environmentIntensity={0.6}>

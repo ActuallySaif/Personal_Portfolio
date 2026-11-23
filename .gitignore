@@ -25,3 +25,4 @@ yarn-error.log*
 
 # Raw Blender exports are large; only the optimized copy in public/models is committed
 /models/*.glb
+/models/.tmp-*
