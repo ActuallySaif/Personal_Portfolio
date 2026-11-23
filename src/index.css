@@ -1,3 +1,21 @@
+
+:root{
+  --mainBg: #212121;
+  --PriOrange: #FF7348;
+  --PriGreen: #abc9af;
+}
+
+
+@font-face {
+  font-family: 'Primary';
+  src: url(./Assets/Fonts/BigShouldersStencil-VariableFont_opsz\,wght.ttf);
+}
+
+@font-face {
+  font-family: 'Secondary';
+  src: url(./Assets/Fonts/JetBrainsMono-VariableFont_wght.ttf);
+}
+
 body{
   background-color: black;
 }
