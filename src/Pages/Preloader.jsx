@@ -2,10 +2,15 @@ import React, { useEffect, useState } from 'react';
 import './Preloader.css';
 import { supabase } from '../supabase';
 
-const Preloader = () => {
-  const [info, setInfo] = useState(null);
+// Kept between page changes so the name doesn't blink in again every time the preloader shows.
+let cachedInfo = null;
+
+// overlay: shown over the page by PageLoader (on every page). hiding: fading out.
+const Preloader = ({ overlay = false, hiding = false }) => {
+  const [info, setInfo] = useState(cachedInfo);
 
   useEffect(() => {
+    if (cachedInfo) return;
     const fetchInfo = async () => {
       const { data, error } = await supabase
         .from('profile')
@@ -16,6 +21,7 @@ const Preloader = () => {
       if (error) {
         console.error('Error fetching from Supabase:', error.message);
       } else {
+        cachedInfo = data;
         setInfo(data);
         console.log('Fetched profile:', data);
       }
@@ -25,7 +31,10 @@ const Preloader = () => {
   }, []);
 
   return (
-    <div className="Preloader">
+    <div
+      className={`Preloader${overlay ? ' is-overlay' : ''}${hiding ? ' is-hiding' : ''}`}
+      aria-hidden={hiding}
+    >
       <div className="PreloadText">
         <p className="PreloadTitle">Portfolio - system check</p>
         <h3 className="MyName">
@@ -39,4 +48,4 @@ const Preloader = () => {
   );
 };
 
-export default Preloader;
+export default Preloader;

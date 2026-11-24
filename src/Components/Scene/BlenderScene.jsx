@@ -1,8 +1,9 @@
 import { Component, Suspense, useEffect, useLayoutEffect, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Bounds, Environment, Lightformer, OrbitControls, useAnimations, useGLTF, useProgress } from '@react-three/drei'
+import { Bounds, Environment, Lightformer, OrbitControls, useAnimations, useGLTF } from '@react-three/drei'
 import { AgXToneMapping, LoopOnce, MathUtils, Quaternion, Vector3 } from 'three'
 import './BlenderScene.css'
+import { usePageHold } from '../Layout/PageLoader'
 
 // Exported from Blender (File > Export > glTF 2.0, .glb). See models/README.md.
 export const MODEL_URL = '/models/scene/scene.gltf'
@@ -249,11 +250,14 @@ function Scene() {
   )
 }
 
-/** Plain DOM overlay (outside the canvas) so it can unmount safely when loading finishes. */
-function LoadingLabel() {
-  const { active, progress } = useProgress()
-  if (!active) return null
-  return <div className="scene-label">Loading scene {progress.toFixed(0)}%</div>
+/** Lets the preloader go once the scene has drawn a couple of frames (shaders compiled, no first-frame hitch). */
+function SceneReady({ onReady }) {
+  const frames = useRef(0)
+  useFrame(() => {
+    frames.current += 1
+    if (frames.current === 3) onReady()
+  })
+  return null
 }
 
 /** Shows a hint instead of a blank page when the .glb is missing or fails to load. */
@@ -261,6 +265,9 @@ class SceneErrorBoundary extends Component {
   state = { error: null }
   static getDerivedStateFromError(error) {
     return { error }
+  }
+  componentDidCatch() {
+    this.props.onError?.() // don't leave the preloader up forever
   }
   render() {
     if (this.state.error) {
@@ -275,9 +282,11 @@ class SceneErrorBoundary extends Component {
 }
 
 export default function BlenderScene() {
+  // Keep the page preloader up until the model, textures and HDRI are loaded and drawn.
+  const loaded = usePageHold()
   return (
     <div className="scene-canvas" aria-hidden="true">
-      <SceneErrorBoundary>
+      <SceneErrorBoundary onError={loaded}>
         <Canvas
           dpr={[1, 1.75]}
           // AgX is Blender 4's default view transform, so colours match the viewport render.
@@ -311,9 +320,9 @@ export default function BlenderScene() {
           )}
           <Suspense fallback={null}>
             <Scene />
+            <SceneReady onReady={loaded} />
           </Suspense>
         </Canvas>
-        <LoadingLabel />
       </SceneErrorBoundary>
     </div>
   )
