@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route} from "react-router";
 import Home from './Pages/home';
 import Preloader from './Pages/Preloader';
 import PageLoader from './Components/Layout/PageLoader';
+import Category from './Pages/Category';
+import ProjectDetails from './Pages/ProjectDetails';
 
 
 const PageRouter = () => {
@@ -13,6 +15,8 @@ const PageRouter = () => {
             <Routes>
                 <Route path='/loading' element={<Preloader/>}/>
                 <Route path='/' element={<Home />}/>
+                <Route path='/category/:slug' element={<Category />}/>
+                <Route path='/projects/:id' element={<ProjectDetails />}/>
             </Routes>
             </PageLoader>
         </BrowserRouter>

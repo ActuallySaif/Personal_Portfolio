@@ -1,9 +1,11 @@
-import { Component, Suspense, useEffect, useLayoutEffect, useRef } from 'react'
+import { Component, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Bounds, Environment, Lightformer, OrbitControls, useAnimations, useGLTF } from '@react-three/drei'
-import { AgXToneMapping, LoopOnce, MathUtils, Quaternion, Vector3 } from 'three'
+import { AgXToneMapping, Box3, Color, LoopOnce, MathUtils, Matrix4, Quaternion, Vector3 } from 'three'
+import { useNavigate } from 'react-router'
 import './BlenderScene.css'
 import { usePageHold } from '../Layout/PageLoader'
+import { CATEGORIES } from '../../data/categories'
 
 // Exported from Blender (File > Export > glTF 2.0, .glb). See models/README.md.
 export const MODEL_URL = '/models/scene/scene.gltf'
@@ -55,6 +57,13 @@ const INTERIOR = {
 // Blender's area light "InteriorLight". glTF can't carry area lights, so only its position,
 // rotation and scale export; colour and strength are set here.
 const INTERIOR_LIGHT = { color: '#FF6A3D', intensity: 250 }
+
+// Clicking a container: the camera flies into it over this long, then the void page opens.
+const ENTER_MS = 1400
+// Hover glow on a container (brand orange, added on top of its textures).
+const GLOW = { color: new Color('#FF7348'), strength: 0.12 }
+
+const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
 /** Patches a glTF material so ambient/sky light fades out inside the INTERIOR box. */
 function darkenInterior(material) {
@@ -178,7 +187,7 @@ function useBlenderCamera(cameras) {
   }, [camera, size.width, size.height])
 }
 
-function Scene() {
+function Scene({ onHover, onEnterStart, onEnter }) {
   const { scene, animations, cameras } = useGLTF(MODEL_URL)
   const { actions, mixer } = useAnimations(animations, scene)
   useBlenderCamera(cameras)
@@ -187,6 +196,29 @@ function Scene() {
   const frame = useRef(readScrollFrame())
 
   const gl = useThree((s) => s.gl)
+
+  // The category containers, each with its own material copy so one can glow without the others.
+  const containers = useMemo(
+    () =>
+      CATEGORIES.map((category) => {
+        const object = scene.getObjectByName(category.node)
+        if (!object) return null
+        const materials = []
+        object.traverse((o) => {
+          if (!o.isMesh) return
+          if (!o.userData.category) {
+            o.material = o.material.clone()
+            o.material.userData = {}
+            o.userData.category = category.slug
+          }
+          materials.push(o.material)
+        })
+        return { category, object, materials, glow: 0 }
+      }).filter(Boolean),
+    [scene]
+  )
+  const hovered = useRef(null) // slug of the container under the pointer
+  const entering = useRef(null) // camera flight into a container, once one is clicked
 
   // Blender's shadow settings don't export, so turn shadows on for every mesh here.
   // Max anisotropic filtering keeps ground and wall textures sharp at grazing angles.
@@ -207,7 +239,7 @@ function Scene() {
         })
       })
     })
-  }, [scene, gl])
+  }, [scene, gl, containers])
 
   useEffect(() => {
     Object.values(actions).forEach((action) => {
@@ -220,6 +252,25 @@ function Scene() {
   }, [actions, mixer])
 
   useFrame((_, dt) => {
+    containers.forEach((c) => {
+      c.glow = MathUtils.damp(c.glow, hovered.current === c.category.slug ? 1 : 0, 10, dt)
+      c.materials.forEach((m) => m.emissive.copy(GLOW.color).multiplyScalar(c.glow * GLOW.strength))
+    })
+
+    // A container was clicked: the camera leaves the scroll path and flies into it.
+    const flight = entering.current
+    if (flight) {
+      const k = Math.min((performance.now() - flight.start) / ENTER_MS, 1)
+      const e = easeInOutCubic(k)
+      flight.camera.position.lerpVectors(flight.fromPos, flight.toPos, e)
+      flight.camera.quaternion.slerpQuaternions(flight.fromQuat, flight.toQuat, e)
+      if (k === 1 && !flight.done) {
+        flight.done = true
+        onEnter?.(flight.category)
+      }
+      return
+    }
+
     // Ease toward the scroll position so wheel steps don't make the camera jump.
     frame.current = MathUtils.damp(frame.current, readScrollFrame(), 6, dt)
     const t = frame.current / FPS
@@ -229,6 +280,50 @@ function Scene() {
     })
     mixer.update(0)
   })
+
+  /** The container under the pointer, if it has slid out far enough to be clicked. */
+  const containerAt = (e) => {
+    if (entering.current) return null
+    let o = e.intersections[0]?.object
+    while (o && !o.userData.category) o = o.parent
+    const c = o && containers.find((c) => c.category.slug === o.userData.category)
+    return c && frame.current >= c.category.outFrame - 2 ? c : null
+  }
+
+  const setHover = (c, e) => {
+    const slug = c?.category.slug ?? null
+    if (hovered.current !== slug) {
+      hovered.current = slug
+      document.body.style.cursor = slug ? 'pointer' : ''
+    }
+    onHover?.(c?.category ?? null, e?.nativeEvent)
+  }
+  useEffect(() => () => (document.body.style.cursor = ''), [])
+
+  const enter = (e) => {
+    // Clicks on page UI (nav buttons, links) also reach the canvas; ignore those.
+    if (e.nativeEvent.target.closest?.('a, button, nav, input, textarea')) return
+    const c = containerAt(e)
+    const camera = cameras[0]
+    if (!c || !camera) return
+    e.stopPropagation()
+    setHover(null)
+    // Fly to the middle of the container's front face, then a little way inside, looking straight in.
+    const box = new Box3().setFromObject(c.object)
+    const center = box.getCenter(new Vector3())
+    const toPos = new Vector3(center.x, center.y, box.max.z - 0.6)
+    const look = new Matrix4().lookAt(toPos, new Vector3(center.x, center.y, box.min.z - 10), camera.up)
+    entering.current = {
+      category: c.category,
+      camera,
+      start: performance.now(),
+      fromPos: camera.position.clone(),
+      fromQuat: camera.quaternion.clone(),
+      toPos,
+      toQuat: new Quaternion().setFromRotationMatrix(look),
+    }
+    onEnterStart?.(c.category)
+  }
 
   // No camera in the export yet: frame the whole scene and allow orbiting so it can still be inspected.
   if (!cameras[0]) {
@@ -244,7 +339,15 @@ function Scene() {
 
   return (
     <>
-      <primitive object={scene} />
+      <primitive
+        object={scene}
+        onPointerMove={(e) => {
+          e.stopPropagation()
+          setHover(containerAt(e), e)
+        }}
+        onPointerOut={() => setHover(null)}
+        onClick={enter}
+      />
       <InteriorLight scene={scene} />
     </>
   )
@@ -284,10 +387,26 @@ class SceneErrorBoundary extends Component {
 export default function BlenderScene() {
   // Keep the page preloader up until the model, textures and HDRI are loaded and drawn.
   const loaded = usePageHold()
+  const navigate = useNavigate()
+  const label = useRef()
+  const [hoverLabel, setHoverLabel] = useState(null)
+  const [fading, setFading] = useState(false)
+
+  const onHover = (category, event) => {
+    setHoverLabel(category?.label ?? null)
+    if (category && event && label.current) {
+      label.current.style.transform = `translate(${event.clientX + 18}px, ${event.clientY + 18}px)`
+    }
+  }
+
   return (
+    <>
     <div className="scene-canvas" aria-hidden="true">
       <SceneErrorBoundary onError={loaded}>
         <Canvas
+          // The page content sits on top of the canvas, so listen for pointer events on the whole page.
+          eventSource={document.getElementById('root')}
+          eventPrefix="client"
           dpr={[1, 1.75]}
           // AgX is Blender 4's default view transform, so colours match the viewport render.
           gl={{ antialias: true, toneMapping: AgXToneMapping }}
@@ -319,12 +438,24 @@ export default function BlenderScene() {
             </Environment>
           )}
           <Suspense fallback={null}>
-            <Scene />
+            <Scene
+              onHover={onHover}
+              onEnterStart={() => setFading(true)}
+              onEnter={(category) => navigate(`/category/${category.slug}`, { state: { seamless: true } })}
+            />
             <SceneReady onReady={loaded} />
           </Suspense>
         </Canvas>
       </SceneErrorBoundary>
     </div>
+    {/* Follows the pointer while it's over a container */}
+    <div ref={label} className={`container-label${hoverLabel ? ' is-visible' : ''}`}>
+      <span className="container-label-kicker">Open category</span>
+      {hoverLabel}
+    </div>
+    {/* Fades to black as the camera flies into a container */}
+    <div className={`scene-fade${fading ? ' is-active' : ''}`} />
+    </>
   )
 }
 

@@ -16,7 +16,9 @@ const HoldContext = createContext(() => () => {})
  * It fades out once MIN_SHOW_MS has passed and no page is holding it (see usePageHold).
  */
 export default function PageLoader({ children }) {
-  const { pathname } = useLocation()
+  // navigate(path, { state: { seamless: true } }) skips the preloader (the page did its own transition).
+  // navigate(path, { state: { scrollTo: 'section-id' } }) opens the page scrolled to that section.
+  const { pathname, state } = useLocation()
   const holds = useRef(new Set())
   const [pending, setPending] = useState(0)
   const [minDone, setMinDone] = useState(false)
@@ -34,9 +36,15 @@ export default function PageLoader({ children }) {
 
   // New page: bring the preloader back and restart the minimum timer.
   useLayoutEffect(() => {
+    const section = state?.scrollTo && document.getElementById(state.scrollTo)
+    if (section) window.scrollTo(0, section.getBoundingClientRect().top + window.scrollY)
+    else window.scrollTo(0, 0)
+    if (state?.seamless) {
+      setPhase('gone')
+      return
+    }
     setPhase('shown')
     setMinDone(false)
-    window.scrollTo(0, 0)
     const min = setTimeout(() => setMinDone(true), MIN_SHOW_MS)
     const max = setTimeout(() => {
       holds.current.clear()
@@ -46,6 +54,8 @@ export default function PageLoader({ children }) {
       clearTimeout(min)
       clearTimeout(max)
     }
+    // Only a new page restarts the preloader, not a change of state on the same page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname])
 
   useEffect(() => {

@@ -1,0 +1,79 @@
+.category-page {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  overflow: hidden;
+}
+
+/* The void fades up from the black the homepage faded to. */
+.category-page .void-canvas {
+  position: absolute !important;
+  inset: 0;
+  animation: void-in 1.2s ease-out both;
+}
+
+@keyframes void-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.category-back {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 2;
+  padding: 0.6rem 0.9rem;
+  background: rgba(33, 33, 33, 0.85);
+  border: 1px solid rgba(198, 201, 192, 0.15);
+  border-left: 2px solid var(--priOrange);
+  color: #C6C9C0;
+  font-family: 'Secondary', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.category-back:hover {
+  background: var(--priOrange);
+  color: var(--mainBg);
+}
+
+.category-info {
+  position: absolute;
+  left: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.category-kicker {
+  margin: 0 0 0.4rem;
+  font-family: 'Secondary', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--priGreen);
+}
+
+.category-title {
+  margin: 0;
+  font-family: 'Primary', sans-serif;
+  font-weight: 400;
+  font-size: clamp(3rem, 9vw, 7rem);
+  line-height: 0.9;
+  color: #C6C9C0;
+}
+
+.category-hint {
+  margin: 0.8rem 0 0;
+  font-family: 'Secondary', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: rgba(198, 201, 192, 0.55);
+}
+
+.category-hint.is-project {
+  color: var(--priOrange);
+}

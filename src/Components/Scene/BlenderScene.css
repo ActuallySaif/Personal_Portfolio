@@ -33,3 +33,52 @@
   white-space: normal;
   text-align: center;
 }
+
+/* Category name that follows the pointer over a container. */
+.container-label {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  padding: 0.45rem 0.7rem;
+  background: rgba(33, 33, 33, 0.92);
+  border-left: 2px solid #FF7348;
+  color: #C6C9C0;
+  font-family: 'Primary', sans-serif;
+  font-size: 1.4rem;
+  line-height: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.container-label.is-visible {
+  opacity: 1;
+}
+
+.container-label-kicker {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: 'Secondary', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ABC9AF;
+}
+
+/* Black curtain for the trip into a container. Timed to finish just before the camera arrives. */
+.scene-fade {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s ease-in 0.6s;
+}
+
+.scene-fade.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
