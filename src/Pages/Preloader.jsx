@@ -31,6 +31,9 @@ const Preloader = () => {
         <h3 className="MyName">
           {info ? `${info.first_Name} ${info.last_Name}` : ''}
         </h3>
+        <div className='Load'>
+            <div className='LoadBar'></div>
+        </div>
       </div>
     </div>
   );

@@ -70,6 +70,22 @@ for (const material of root.listMaterials()) {
   console.log(`bump -> normal map: ${material.getName()}`)
 }
 
+// 1b. Baked AO lives on a second UV map. If an object without that UV map shares the material,
+//     Blender exports it with the AO on UV 0, which smears the bake across it; drop AO there.
+const aoOnExtraUv = new Set(
+  root
+    .listMaterials()
+    .filter((m) => m.getOcclusionTexture() && m.getOcclusionTextureInfo().getTexCoord() > 0)
+    .map((m) => m.getOcclusionTexture())
+)
+for (const material of root.listMaterials()) {
+  const ao = material.getOcclusionTexture()
+  if (ao && aoOnExtraUv.has(ao) && material.getOcclusionTextureInfo().getTexCoord() === 0) {
+    material.setOcclusionTexture(null)
+    console.log(`dropped mismatched AO on: ${material.getName()} (object has no AO UV map)`)
+  }
+}
+
 // 2. Keep empty light-marker transforms in the scene extras (read by BlenderScene.jsx).
 const markers = {}
 for (const node of root.listNodes()) {
